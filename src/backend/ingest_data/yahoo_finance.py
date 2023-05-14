@@ -15,8 +15,6 @@ for stock in companies:
     ticker = yf.Ticker(stock)
     stock_history = ticker.history(period="1mo")
     stock_history["company"] = stock
-    print(stock_history.shape)
-    print(stock_history.head())
 
     # resp = requests.post(f"{BASE_ENDPOINT}{INGEST_ENDPOINT}", json=request_body)
     break
