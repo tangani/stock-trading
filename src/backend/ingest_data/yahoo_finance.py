@@ -13,12 +13,11 @@ for stock in companies:
     ticker = yf.Ticker(stock)
     stock_history = ticker.history(period="30mo")
     stock_history["company"] = stock
-    # df = df.append(stock_history)
-
-    # resp = requests.post(f"{BASE_ENDPOINT}{INGEST_ENDPOINT}", json=request_body)
     df = pd.concat([df, stock_history])
 
-# psql -U postgres -h 127.0.0.1 -d postgres
+df.reset_index(inplace=True)
+print(df.head())
+
 engine = create_engine(
     'postgresql+psycopg2://postgres:5432@localhost:5432/postgres')
 
