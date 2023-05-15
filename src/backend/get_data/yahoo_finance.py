@@ -1,21 +1,16 @@
 import psycopg2
+from sqlalchemy import create_engine
+import pandas as pd
+
+def get_data(table):
+    
+    engine = create_engine(
+    'postgresql+psycopg2://postgres:5432@localhost:5432/postgres')
+
+    df = pd.read_sql(f"select * from {table}", con=engine)
 
 
-def get_data(database, table):
-    conn = psycopg2.connect(
-        database=f"{database}", user='postgres', password='password', host='127.0.0.1', port='5432'
-    )
-
-    conn.autocommit = True
-
-    cursor = conn.cursor()
-    cursor.execute(f"""SELECT * from {table}""")
-
-    data = cursor.fetchall()
-    conn.commit()
-    conn.close()
-
-    return data
+    return df
 
 
 if __name__ == "__main__":
