@@ -1,20 +1,37 @@
-import httpx
+from sqlalchemy import create_engine
+import pandas as pd
+import psycopg2
+import io
 import yfinance as yf
 
-import os
-
-CONNECT_API_HOST = os.environ.get("CONNECT_API_HOST", "localhost")
-CONNECT_API_PORT = os.environ.get("CONNECT_API_PORT", "9991")
-BASE_ENDPOINT = f"http://{CONNECT_API_HOST}:{CONNECT_API_PORT}"
 
 companies = ["TSLA", "PLTR", "AMD", "AMZN", "SOFI", "NIO", "AAPL", "GOOGL", "PBR", "UBER", "SWN"]
 
-# 1m, 2m, 5m, 15m, 30m, 60m, 90m, 1h, 1d, 5d, 1wk, 1mo, 3mo
+df = pd.DataFrame()
 
 for stock in companies:
     ticker = yf.Ticker(stock)
-    stock_history = ticker.history(period="1mo")
+    stock_history = ticker.history(period="30mo")
     stock_history["company"] = stock
+    # df = df.append(stock_history)
 
     # resp = requests.post(f"{BASE_ENDPOINT}{INGEST_ENDPOINT}", json=request_body)
-    break
+    df = pd.concat([df, stock_history])
+
+# psql -U postgres -h 127.0.0.1 -d postgres
+engine = create_engine(
+    'postgresql+psycopg2://postgres:5432@localhost:5432/postgres')
+
+# Drop old table and create new empty table
+df.head(0).to_sql('yahoo_finance', engine, if_exists='replace',index=False)
+
+conn = engine.raw_connection()
+cur = conn.cursor()
+output = io.StringIO()
+df.to_csv(output, sep='\t', header=False, index=False)
+output.seek(0)
+contents = output.getvalue()
+cur.copy_from(output, 'yahoo_finance', null="") # null values become ''
+conn.commit()
+cur.close()
+conn.close()
