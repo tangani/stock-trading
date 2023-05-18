@@ -9,10 +9,9 @@ def get_data(table):
 
     df = pd.read_sql(f"select * from {table}", con=engine)
 
-
     return df
 
 
 if __name__ == "__main__":
-    get_data("postgres", "yahoo_finance")
+    get_data("yahoo_finance")
 
